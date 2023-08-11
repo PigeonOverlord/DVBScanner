@@ -1,13 +1,15 @@
 import subprocess
-import os, sys, shutil
+import os
+import sys
+import shutil
 import xml.etree.ElementTree as ET
 import asyncio
 
 
-## SCAN FUNCTIONS ## = runs subprocess tsscan
+# SCAN FUNCTIONS ## = runs subprocess tsscan
 
-##ASTRA - 11229000000, 22000000
-##EUTEL - 11096000000, 29950000
+# ASTRA - 11229000000, 22000000
+# EUTEL - 11096000000, 29950000
 
 # satellite - nit-scan, requires accurate starting frequency & symbolrate for lock
 # When tuning parameters are specified, tsscan reads the NIT from that transponder. The NIT is then analyzed and all referenced transponders - with all tuning parameters - are found here.
@@ -20,14 +22,10 @@ async def satScan(satName, freq, symb, pol):
             "/usr/bin/tsscan",
             "--verbose",
             "--nit-scan",
-            "--frequency",
-            freq,
-            "--polarity",
-            pol,
-            "--symbol-rate",
-            symb,
-            "--delivery-system",
-            "DVB-S2",
+            "--frequency", freq,
+            "--polarity", pol,
+            "--symbol-rate", symb,
+            "--delivery-system", "DVB-S2",
             "--service-list",
             "--save-channels",
             "sat_streams/sat_tuning_data/" + satName + ".xml",
@@ -82,7 +80,7 @@ async def terrScan(terrName):
         print(e)
 
 
-## TRANSMISSION TUNING INFO - returns tuning parameters for each frequency from scan results
+# TRANSMISSION TUNING INFO - returns tuning parameters for each frequency from scan results
 
 
 # satellite - requires filename of saved XML satellite scans
@@ -114,7 +112,7 @@ def terrNetworkInfo(terrName):
     return network
 
 
-## SERVICE LIST INFO - returns dictionary of services for each frequency
+# SERVICE LIST INFO - returns dictionary of services for each frequency
 
 
 # satellite - requires filename of saved XML satellite scans
@@ -128,7 +126,8 @@ def satServicesInfo(satName):
         dvbs = ts.find("dvbs")  # Find the <dvbs> node within the <ts> node
         if dvbs is not None:
             frequency = dvbs.get("frequency")  # Access the frequency attribute
-            name_list = [service.get("name") for service in ts.findall(".//service")]
+            name_list = [service.get("name")
+                         for service in ts.findall(".//service")]
             servicesList[frequency] = name_list
     print(servicesList)
     return servicesList
@@ -145,14 +144,15 @@ def terrServicesInfo(terrName):
         dvbt = ts.find("dvbt")  # Find the <dvbs> node within the <ts> node
         if dvbt is not None:
             frequency = dvbt.get("frequency")  # Access the frequency attribute
-            name_list = [service.get("name") for service in ts.findall(".//service")]
+            name_list = [service.get("name")
+                         for service in ts.findall(".//service")]
             servicesList[frequency] = name_list
     print(servicesList)
     return servicesList
 
 
-## RECORD FUNCTIONS ## - runs subprocess tsp - uses tuning parameters from tsscan - record time set to 10 seconds -
-## used in conjunction with [transmission]NetworkRecord & [transmission]ChannelRecord to record and analyze streams
+# RECORD FUNCTIONS ## - runs subprocess tsp - uses tuning parameters from tsscan - record time set to 10 seconds -
+# used in conjunction with [transmission]NetworkRecord & [transmission]ChannelRecord to record and analyze streams
 
 
 # satellite
@@ -166,47 +166,29 @@ def satRecord(network):
                 "--verbose",
                 "-I",
                 "dvb",
-                "--signal-timeout",
-                str(8),
-                "--delivery-system",
-                str(network["system"]),
-                "--frequency",
-                str(network["frequency"]),
-                "--polarity",
-                str(network["polarity"]),
-                "--symbol-rate",
-                str(network["symbolrate"]),
-                "--modulation",
-                str(network["modulation"]),
-                "--fec-inner",
-                str(network["FEC"]),
-                "-P",
-                "until",
-                "--seconds",
-                str(20),
-                "-O",
-                "file",
-                "sat_streams/recordings/" + str(network["frequency"]),
-                "-P",
-                "analyze",
-                "--wide-display",
-                "--output-file",
-                "sat_streams/service_list/"
-                + "TSinfo - "
-                + str(network["frequency"])
-                + ".conf",
+                "--signal-timeout", str(8),
+                "--delivery-system", str(network["system"]),
+                "--frequency", str(network["frequency"]),
+                "--polarity", str(network["polarity"]),
+                "--symbol-rate", str(network["symbolrate"]),
+                "--modulation", str(network["modulation"]),
+                "--fec-inner", str(network["FEC"]),
+                "-P", "until", "--seconds", str(20),
+                "-O", "file", "sat_streams/recordings/" + str(network["frequency"]),
+                "-P", "analyze", "--wide-display",
+                "--output-file", "sat_streams/service_list/" + "TSinfo - " + str(network["frequency"]) + ".conf",
             ]
         )
     except:
         print("ERROR")
-        ## removes created empty service list file due to error
+        # removes created empty service list file due to error
         os.remove(
             r"sat_streams/service_list/"
             + "TSinfo - "
             + str(network["frequency"])
             + ".conf"
         )
-        ## saves modulation parameters in error log file
+        # saves modulation parameters in error log file
         with open("sat_streams/errorLog.txt", "a") as f:
             f.write(
                 "Error recording frequency "
@@ -236,41 +218,26 @@ def terrRecord(network):
                 "--verbose",
                 "-I",
                 "dvb",
-                "--signal-timeout",
-                str(8),
-                "--delivery-system",
-                "DVB-T",
-                "--frequency",
-                str(network["frequency"]),
-                "--modulation",
-                str(network["modulation"]),
-                "-P",
-                "until",
-                "--seconds",
-                str(8),
-                "-O",
-                "file",
-                "terr_streams/recordings/" + str(network["frequency"]),
-                "-P",
-                "analyze",
-                "--wide-display",
-                "--output-file",
-                "terr_streams/service_list/"
-                + "TSinfo - "
-                + str(network["frequency"])
-                + ".conf",
+                "--signal-timeout", str(8),
+                "--delivery-system", "DVB-T",
+                "--frequency", str(network["frequency"]),
+                "--modulation", str(network["modulation"]),
+                "-P", "until", "--seconds", str(8),
+                "-O", "file", "terr_streams/recordings/" + str(network["frequency"]),
+                "-P", "analyze", "--wide-display",
+                "--output-file", "terr_streams/service_list/" + "TSinfo - " + str(network["frequency"]) + ".conf",
             ]
         )
     except:
         print("ERROR")
-        ## removes empty service list file due to error
+        # removes empty service list file due to error
         os.remove(
             r"terr_streams/service_list/"
             + "TSinfo - "
             + str(network["frequency"])
             + ".conf"
         )
-        ## saves modulation parameters in error log file
+        # saves modulation parameters in error log file
         with open("terr_streams/errorLog.txt", "a") as f:
             f.write(
                 "Error recording frequency "
@@ -281,7 +248,7 @@ def terrRecord(network):
             )
 
 
-## FREQUENCY RECORD ## records channels on specified frequency
+# FREQUENCY RECORD ## records channels on specified frequency
 
 
 def satFreqRecord(satName, freq):
@@ -304,7 +271,7 @@ def terrFreqRecord(terrName, freq):
     print("FINISHED RECORDING")
 
 
-## NETWORK RECORD FUNCTIONS ## - loops through all frequencies on the network and records all channels
+# NETWORK RECORD FUNCTIONS ## - loops through all frequencies on the network and records all channels
 
 
 # satellite
@@ -330,39 +297,39 @@ def terrNetworkRecord(terrName):
 
 # satellite
 def satRecordingsDeleteFolder():
-    ## removes previous record folder
+    # removes previous record folder
     if os.path.exists("sat_streams/recordings"):
         shutil.rmtree("sat_streams/recordings")
-        ## creates new recordings folder
+        # creates new recordings folder
         os.mkdir("sat_streams/recordings")
 
 
 def satService_listDeleteFolder():
-    ## removes previous service list folder
+    # removes previous service list folder
     if os.path.exists("sat_streams/service_list"):
         shutil.rmtree("sat_streams/service_list")
-        ## creates new service list folder
+        # creates new service list folder
         os.mkdir("sat_streams/service_list")
 
 
 # terrestrial
 def terrRecordingsDeleteFolder():
-    ## removes previous record folder
+    # removes previous record folder
     if os.path.exists("terr_streams/recordings"):
         shutil.rmtree("terr_streams/recordings")
-        ## creates new recordings folder
+        # creates new recordings folder
         os.mkdir("terr_streams/recordings")
 
 
 def terrService_listDeleteFolder():
-    ## removes previous service list folder
+    # removes previous service list folder
     if os.path.exists("terr_streams/service_list"):
         shutil.rmtree("terr_streams/service_list")
-        ## creates new service list folder
+        # creates new service list folder
         os.mkdir("terr_streams/service_list")
 
 
-## TEST CALLS
+# TEST CALLS
 
 # satNetworkInfo('Astra.xml')
 # satServicesInfo('Astra.xml')
