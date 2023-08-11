@@ -2,8 +2,8 @@
 
 
 
-# import tkinter
-# import tkinter.messagebox
+import tkinter
+import tkinter.messagebox
 import customtkinter
 import scanFuncs
 import os
