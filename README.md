@@ -11,6 +11,7 @@ Satellite/Terrestrial Tuner with up to date drivers
 ## Dependancies
 
 tkinter
+
 customtkinter
 
 ## Usage
